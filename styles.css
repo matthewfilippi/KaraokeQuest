@@ -1,0 +1,19 @@
+# KaraokeQuest: CFL
+
+A static treasure-map karaoke locator for Central Florida.
+
+## Upload to GitHub
+
+1. Create a GitHub repository named `KaraokeQuest`.
+2. Upload everything in this folder to the repository root:
+   - `index.html`
+   - `styles.css`
+   - `app.js`
+   - `assets/`
+3. To publish it, open the repo's **Settings > Pages** and deploy from the `main` branch root.
+
+## Notes
+
+- The login accepts any non-empty login and password in this prototype.
+- Pins and ledger entries are saved in the visitor's browser using `localStorage`.
+- The site will use `assets/JackSkull.woff2` if you add a licensed copy of the Jack Skull font. Until then, it uses pirate-style fallback fonts.
