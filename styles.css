@@ -84,7 +84,7 @@ button {
     radial-gradient(circle at 50% 43%, rgba(255, 237, 180, 0.22), rgba(255, 224, 141, 0.05) 28%, transparent 48%),
     linear-gradient(rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.84));
   opacity: 0;
-  animation: warmMap 2.2s ease 0.9s forwards;
+  animation: warmMap 2.2s ease 4.25s forwards;
 }
 
 @property --spot-radius {
@@ -109,7 +109,7 @@ button {
       transparent 0 var(--spot-radius),
       rgba(0, 0, 0, 0.5) calc(var(--spot-radius) + 76px),
       #000 calc(var(--spot-radius) + 158px));
-  animation: revealSpot 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: revealSpot 4s steps(1, end) 4s forwards;
   pointer-events: none;
 }
 
@@ -156,7 +156,7 @@ h1,
     0 4px 0 #2a1309,
     0 0 22px rgba(255, 219, 127, 0.84),
     0 0 58px rgba(255, 229, 165, 0.55);
-  animation: titleRise 1.2s ease 1.25s both;
+  animation: titleRise 1.2s ease 4.45s both;
 }
 
 .login-form {
@@ -168,7 +168,7 @@ h1,
   padding: 0;
   opacity: 0;
   transform: translateY(16px);
-  animation: formFade 1s ease 2.35s forwards;
+  animation: formFade 1s ease 5.85s forwards;
 }
 
 .login-form label,
@@ -326,10 +326,9 @@ h1,
 
 .map-view {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(230px, 320px) 1fr;
-  gap: clamp(0.85rem, 2vw, 1.4rem);
-  padding: clamp(0.85rem, 2vw, 1.4rem);
+  min-height: calc(100vh - 72px);
+  overflow: hidden;
+  padding: 0;
 }
 
 .map-tools,
@@ -345,11 +344,16 @@ h1,
 }
 
 .map-tools {
-  align-self: start;
+  position: absolute;
+  top: clamp(0.75rem, 2vw, 1rem);
+  left: clamp(0.75rem, 2vw, 1rem);
+  z-index: 500;
+  width: min(310px, calc(100vw - 1.5rem));
   display: grid;
-  gap: 1rem;
-  padding: 1.15rem;
+  gap: 0.72rem;
+  padding: 0.82rem;
   border-radius: 8px;
+  backdrop-filter: blur(8px);
 }
 
 .kicker {
@@ -371,14 +375,18 @@ h1,
   line-height: 1;
 }
 
+.map-tools h2 {
+  font-size: clamp(1.45rem, 3vw, 2.05rem);
+}
+
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
+  gap: 0.45rem;
 }
 
 .stats-row span {
-  min-height: 58px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   border-radius: 6px;
@@ -388,7 +396,7 @@ h1,
 }
 
 .stats-row strong {
-  font-size: 1.55rem;
+  font-size: 1.18rem;
 }
 
 .map-tools button,
@@ -396,27 +404,123 @@ h1,
   width: 100%;
 }
 
+.location-search {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.location-search label {
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 0.4rem;
+}
+
+.search-row input {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid rgba(70, 38, 18, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 246, 219, 0.9);
+  color: var(--ink);
+  padding: 0.48rem 0.55rem;
+  outline: none;
+}
+
+.search-row input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(27, 107, 115, 0.2);
+}
+
+.search-row button {
+  min-height: 38px;
+  padding-inline: 0.45rem;
+}
+
+.search-status {
+  min-height: 1rem;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
 .map-board {
-  position: relative;
-  min-height: calc(100vh - 108px);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 100%;
   overflow: hidden;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 229, 166, 0.22);
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.5);
-  background:
-    linear-gradient(rgba(28, 16, 8, 0.1), rgba(28, 16, 8, 0.02)),
-    url("./central-florida-treasure-map.png") center / cover no-repeat;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: #d8c99b;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100vh - 72px);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.leaflet-control-attribution {
+  background: rgba(255, 247, 220, 0.82) !important;
+  color: var(--ink) !important;
+  font-size: 0.68rem !important;
 }
 
 .map-board.placing {
   cursor: crosshair;
-  outline: 3px solid rgba(225, 173, 74, 0.68);
-  outline-offset: -6px;
+  outline: 4px solid rgba(225, 173, 74, 0.86);
+  outline-offset: -8px;
 }
 
 .pin-layer {
   position: absolute;
   inset: 0;
+}
+
+.quest-pin-icon,
+.quest-search-icon {
+  background: transparent;
+  border: 0;
+}
+
+.quest-pin-icon span {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #ffe7a6;
+  border-radius: 50% 50% 50% 0;
+  background: linear-gradient(135deg, #d9362c, #6f120e);
+  box-shadow: 0 8px 15px rgba(36, 5, 3, 0.42);
+  transform: rotate(-45deg);
+}
+
+.quest-pin-icon span::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 999px;
+  background: #ffe7a6;
+}
+
+.quest-search-icon span {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #fff0bd;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, #fff0bd 0 23%, #1b6b73 24% 100%);
+  box-shadow: 0 0 0 4px rgba(27, 107, 115, 0.24), 0 8px 14px rgba(0, 0, 0, 0.3);
 }
 
 .pin-marker {
@@ -468,6 +572,10 @@ h1,
 
 .ledger-view {
   padding: clamp(1rem, 3vw, 2.2rem);
+  background:
+    linear-gradient(rgba(248, 230, 188, 0.88), rgba(226, 190, 122, 0.9)),
+    url("./login-treasure-map.png") center / cover fixed no-repeat;
+  color: var(--ink);
 }
 
 .ledger-heading {
@@ -479,6 +587,18 @@ h1,
   margin: 0 auto 1rem;
   padding: 1rem;
   border-radius: 8px;
+}
+
+.ledger-heading,
+.ledger-card,
+.empty-ledger {
+  background:
+    linear-gradient(rgba(255, 246, 219, 0.9), rgba(224, 190, 125, 0.86)),
+    repeating-linear-gradient(92deg, rgba(93, 55, 29, 0.06) 0 1px, transparent 1px 14px);
+  border-color: rgba(93, 55, 29, 0.32);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 222, 0.42),
+    0 10px 24px rgba(91, 57, 31, 0.2);
 }
 
 .ledger-list {
@@ -580,12 +700,56 @@ h1,
     --spot-radius: 0px;
   }
 
-  16% {
+  5% {
     --spot-radius: 0px;
   }
 
-  55% {
+  8% {
+    --spot-radius: 118px;
+  }
+
+  10% {
+    --spot-radius: 10px;
+  }
+
+  12% {
+    --spot-radius: 156px;
+  }
+
+  16% {
+    --spot-radius: 54px;
+  }
+
+  19% {
     --spot-radius: 210px;
+  }
+
+  25% {
+    --spot-radius: 120px;
+  }
+
+  29% {
+    --spot-radius: 270px;
+  }
+
+  36% {
+    --spot-radius: 250px;
+  }
+
+  41% {
+    --spot-radius: 332px;
+  }
+
+  47% {
+    --spot-radius: 288px;
+  }
+
+  58% {
+    --spot-radius: 372px;
+  }
+
+  72% {
+    --spot-radius: 350px;
   }
 
   100% {
@@ -641,12 +805,9 @@ h1,
     justify-self: stretch;
   }
 
-  .map-view {
-    grid-template-columns: 1fr;
-  }
-
-  .map-board {
-    min-height: 64vh;
+  .map-tools {
+    top: 0.75rem;
+    left: 0.75rem;
   }
 
   .ledger-card {
