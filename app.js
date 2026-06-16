@@ -37,8 +37,6 @@
     loginError: document.getElementById("loginError"),
     logoutButton: document.getElementById("logoutButton"),
     mapBoard: document.getElementById("mapBoard"),
-    pinCount: document.getElementById("pinCount"),
-    activeModeText: document.getElementById("activeModeText"),
     dropPinButton: document.getElementById("dropPinButton"),
     ledgerDropPinButton: document.getElementById("ledgerDropPinButton"),
     clearPinsButton: document.getElementById("clearPinsButton"),
@@ -266,11 +264,9 @@
   function renderMode() {
     els.mapBoard.classList.toggle("placing", state.placing);
     els.dropPinButton.textContent = state.placing ? "Click Map" : "Drop Pin";
-    els.activeModeText.textContent = state.placing ? "Placing" : "Browse";
   }
 
   function renderPins() {
-    els.pinCount.textContent = String(state.pins.length);
     if (!state.markerLayer) {
       return;
     }
