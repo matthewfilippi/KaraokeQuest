@@ -69,9 +69,11 @@ button {
   inset: 0;
   z-index: -2;
   background:
-    linear-gradient(rgba(21, 12, 5, 0.2), rgba(4, 2, 1, 0.72)),
+    radial-gradient(circle at 68% 28%, rgba(104, 48, 16, 0.26), transparent 22%),
+    radial-gradient(circle at 23% 74%, rgba(54, 25, 8, 0.22), transparent 26%),
+    linear-gradient(rgba(35, 18, 4, 0.28), rgba(4, 2, 1, 0.76)),
     url("./login-treasure-map.png") center / cover no-repeat;
-  filter: sepia(12%) saturate(92%) brightness(0.8);
+  filter: sepia(46%) saturate(78%) brightness(0.72) contrast(1.08);
   transform: scale(1.03);
 }
 
@@ -81,36 +83,65 @@ button {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 50% 43%, rgba(255, 237, 180, 0.22), rgba(255, 224, 141, 0.05) 28%, transparent 48%),
-    linear-gradient(rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.84));
+    radial-gradient(ellipse 74% 58% at 50% 104%, rgba(255, 187, 76, 0.42), rgba(158, 61, 13, 0.2) 34%, transparent 72%),
+    radial-gradient(ellipse 48% 30% at 50% 100%, rgba(255, 240, 173, 0.23), transparent 58%),
+    linear-gradient(to top, rgba(50, 19, 5, 0.26), rgba(0, 0, 0, 0.72) 64%, rgba(0, 0, 0, 0.88));
   opacity: 0;
-  animation: warmMap 2.2s ease 4.25s forwards;
-}
-
-@property --spot-radius {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
+  animation:
+    candleAmbientRise 2.2s ease 4s forwards,
+    candleAmbientFlicker 2.7s linear 5.8s infinite;
 }
 
 .login-curtain {
   position: absolute;
   inset: 0;
   z-index: 3;
-  --spot-radius: 0px;
+  overflow: hidden;
   background: #000;
-  -webkit-mask:
-    radial-gradient(circle at 50% 43%,
-      transparent 0 var(--spot-radius),
-      rgba(0, 0, 0, 0.5) calc(var(--spot-radius) + 76px),
-      #000 calc(var(--spot-radius) + 158px));
-  mask:
-    radial-gradient(circle at 50% 43%,
-      transparent 0 var(--spot-radius),
-      rgba(0, 0, 0, 0.5) calc(var(--spot-radius) + 76px),
-      #000 calc(var(--spot-radius) + 158px));
-  animation: revealSpot 4s steps(1, end) 4s forwards;
+  filter: brightness(1) saturate(1);
+  animation:
+    candleIgnite 6.4s linear forwards,
+    candleHueFlicker 2.1s linear 6.4s infinite;
   pointer-events: none;
+}
+
+.login-curtain::before,
+.login-curtain::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.login-curtain::before {
+  bottom: -18vh;
+  width: min(190vw, 1400px);
+  height: min(78vh, 600px);
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 246, 196, 0.62) 0 9%, rgba(255, 190, 75, 0.44) 20%, rgba(158, 61, 12, 0.24) 38%, transparent 72%),
+    radial-gradient(ellipse at 50% 94%, rgba(255, 226, 138, 0.28), transparent 56%);
+  filter: blur(24px);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation:
+    candleFlameCatch 6.4s linear forwards,
+    candleFlameFlicker 1.25s steps(6, end) 6.4s infinite;
+}
+
+.login-curtain::after {
+  bottom: -10vh;
+  width: min(220vw, 1600px);
+  height: 98vh;
+  background:
+    radial-gradient(ellipse at 50% 102%, rgba(255, 189, 78, 0.28), rgba(111, 39, 8, 0.16) 44%, transparent 78%),
+    radial-gradient(ellipse at 50% 92%, rgba(255, 233, 158, 0.14), transparent 52%);
+  opacity: 0;
+  filter: blur(36px);
+  transform-origin: 50% 100%;
+  animation:
+    candleGlowCatch 6.4s linear forwards,
+    candleGlowFlicker 1.9s linear 6.4s infinite;
 }
 
 .login-panel {
@@ -126,8 +157,7 @@ button {
   text-align: center;
 }
 
-.brand-mark,
-.title-symbol {
+.brand-mark {
   font-family: "Jack Skull", "Blackadder ITC", "Chiller", Papyrus, fantasy;
   line-height: 1;
 }
@@ -288,11 +318,6 @@ h1,
   text-shadow: 0 0 18px rgba(255, 225, 149, 0.34);
 }
 
-.title-symbol {
-  color: var(--red);
-  font-size: 1.35em;
-}
-
 .view-tabs {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(92px, 1fr));
@@ -336,11 +361,16 @@ h1,
 .ledger-card,
 .empty-ledger {
   background:
-    linear-gradient(rgba(255, 247, 220, 0.78), rgba(229, 199, 140, 0.82)),
-    radial-gradient(circle at 10% 10%, rgba(139, 36, 32, 0.16), transparent 38%);
+    radial-gradient(circle at 14% 18%, rgba(96, 42, 15, 0.18), transparent 22%),
+    radial-gradient(circle at 86% 72%, rgba(139, 81, 28, 0.16), transparent 24%),
+    repeating-linear-gradient(92deg, rgba(92, 56, 24, 0.055) 0 1px, transparent 1px 16px),
+    linear-gradient(rgba(255, 247, 220, 0.78), rgba(220, 184, 110, 0.84));
   color: var(--ink);
   border: 1px solid rgba(93, 55, 29, 0.42);
-  box-shadow: 0 16px 38px var(--shadow);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 220, 0.32),
+    inset 0 0 22px rgba(86, 44, 17, 0.14),
+    0 16px 38px var(--shadow);
 }
 
 .map-tools {
@@ -348,10 +378,10 @@ h1,
   top: clamp(0.75rem, 2vw, 1rem);
   left: clamp(0.75rem, 2vw, 1rem);
   z-index: 500;
-  width: min(310px, calc(100vw - 1.5rem));
+  width: min(252px, calc(100vw - 1rem));
   display: grid;
-  gap: 0.72rem;
-  padding: 0.82rem;
+  gap: 0.45rem;
+  padding: 0.58rem;
   border-radius: 8px;
   backdrop-filter: blur(8px);
 }
@@ -359,7 +389,7 @@ h1,
 .kicker {
   margin: 0;
   color: var(--red);
-  font-size: 0.76rem;
+  font-size: 0.66rem;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -376,27 +406,28 @@ h1,
 }
 
 .map-tools h2 {
-  font-size: clamp(1.45rem, 3vw, 2.05rem);
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
 }
 
 .stats-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.45rem;
+  gap: 0.34rem;
 }
 
 .stats-row span {
-  min-height: 44px;
+  min-height: 34px;
   display: grid;
   place-items: center;
   border-radius: 6px;
   background: rgba(58, 30, 12, 0.1);
   border: 1px solid rgba(70, 38, 18, 0.16);
   font-weight: 800;
+  font-size: 0.82rem;
 }
 
 .stats-row strong {
-  font-size: 1.18rem;
+  font-size: 1rem;
 }
 
 .map-tools button,
@@ -406,31 +437,32 @@ h1,
 
 .location-search {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.26rem;
 }
 
 .location-search label {
   color: var(--ink);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .search-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 72px;
-  gap: 0.4rem;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: 0.3rem;
 }
 
 .search-row input {
   min-width: 0;
-  min-height: 38px;
+  min-height: 32px;
   border: 1px solid rgba(70, 38, 18, 0.28);
   border-radius: 6px;
   background: rgba(255, 246, 219, 0.9);
   color: var(--ink);
-  padding: 0.48rem 0.55rem;
+  padding: 0.34rem 0.42rem;
   outline: none;
+  font-size: 0.82rem;
 }
 
 .search-row input:focus {
@@ -439,28 +471,70 @@ h1,
 }
 
 .search-row button {
-  min-height: 38px;
-  padding-inline: 0.45rem;
+  min-height: 32px;
+  padding-inline: 0.34rem;
+  font-size: 0.82rem;
 }
 
 .search-status {
-  min-height: 1rem;
+  min-height: 0.85rem;
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   line-height: 1.25;
+}
+
+.map-tools .primary-button,
+.map-tools .secondary-button {
+  min-height: 34px;
+  font-size: 0.84rem;
 }
 
 .map-board {
   position: absolute;
   inset: 0;
   z-index: 1;
+  height: 100%;
   min-height: 100%;
   overflow: hidden;
   border-radius: 0;
   border: 0;
   box-shadow: none;
-  background: #d8c99b;
+  background: #cdb676;
+}
+
+.map-board::before,
+.map-board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 420;
+  pointer-events: none;
+}
+
+.map-board::before {
+  background:
+    radial-gradient(circle at 7% 12%, rgba(69, 31, 9, 0.2), transparent 14%),
+    radial-gradient(circle at 29% 78%, rgba(112, 63, 18, 0.13), transparent 18%),
+    radial-gradient(circle at 63% 19%, rgba(115, 64, 22, 0.12), transparent 17%),
+    radial-gradient(circle at 92% 76%, rgba(61, 26, 7, 0.18), transparent 16%),
+    repeating-linear-gradient(88deg, rgba(83, 49, 19, 0.065) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(2deg, rgba(255, 248, 221, 0.035) 0 2px, transparent 2px 19px),
+    linear-gradient(rgba(226, 190, 122, 0.19), rgba(105, 59, 20, 0.12));
+  mix-blend-mode: multiply;
+}
+
+.map-board::after {
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 0 52%, rgba(38, 18, 6, 0.46) 100%),
+    radial-gradient(circle at 0 0, rgba(40, 18, 5, 0.44), transparent 17%),
+    radial-gradient(circle at 100% 0, rgba(40, 18, 5, 0.4), transparent 18%),
+    radial-gradient(circle at 0 100%, rgba(40, 18, 5, 0.42), transparent 19%),
+    radial-gradient(circle at 100% 100%, rgba(40, 18, 5, 0.42), transparent 18%),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(69, 39, 14, 0.11) 119px, transparent 121px),
+    repeating-linear-gradient(0deg, transparent 0 132px, rgba(255, 245, 201, 0.07) 133px, transparent 136px),
+    linear-gradient(90deg, rgba(42, 21, 7, 0.3), transparent 9%, transparent 91%, rgba(42, 21, 7, 0.3)),
+    linear-gradient(0deg, rgba(42, 21, 7, 0.28), transparent 11%, transparent 89%, rgba(42, 21, 7, 0.28));
 }
 
 .leaflet-container {
@@ -468,6 +542,19 @@ h1,
   height: 100%;
   min-height: calc(100vh - 72px);
   font-family: Georgia, "Times New Roman", serif;
+  background: #cdb676;
+}
+
+.leaflet-tile {
+  filter: sepia(0.98) saturate(0.58) hue-rotate(349deg) brightness(1.02) contrast(0.9);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(255, 243, 206, 0.96);
+  color: var(--ink);
+  border: 1px solid rgba(93, 55, 29, 0.35);
+  box-shadow: 0 12px 28px rgba(46, 24, 10, 0.28);
 }
 
 .leaflet-control-attribution {
@@ -636,13 +723,14 @@ h1,
 }
 
 .delete-button {
-  width: 38px;
+  min-width: 76px;
   height: 38px;
-  border: 1px solid rgba(92, 30, 21, 0.3);
+  border: 1px solid rgba(70, 38, 18, 0.28);
   border-radius: 6px;
-  background: rgba(142, 36, 32, 0.12);
-  color: var(--red);
+  background: rgba(255, 239, 194, 0.82);
+  color: var(--ink);
   font-weight: 900;
+  padding-inline: 0.75rem;
 }
 
 .empty-ledger {
@@ -695,71 +783,214 @@ h1,
   padding: 0;
 }
 
-@keyframes revealSpot {
-  0% {
-    --spot-radius: 0px;
+@keyframes candleIgnite {
+  0%,
+  62% {
+    background: #000;
   }
 
-  5% {
-    --spot-radius: 0px;
+  63.5% {
+    background:
+      radial-gradient(ellipse 28% 18% at 50% 103%, rgba(255, 195, 75, 0.24), transparent 64%),
+      rgba(0, 0, 0, 0.98);
   }
 
-  8% {
-    --spot-radius: 118px;
+  65% {
+    background: #000;
   }
 
-  10% {
-    --spot-radius: 10px;
+  67% {
+    background:
+      radial-gradient(ellipse 46% 28% at 49% 102%, rgba(255, 219, 122, 0.32), rgba(166, 67, 9, 0.12) 38%, transparent 72%),
+      rgba(0, 0, 0, 0.88);
   }
 
-  12% {
-    --spot-radius: 156px;
+  71% {
+    background:
+      radial-gradient(ellipse 60% 40% at 51% 101%, rgba(255, 206, 91, 0.36), rgba(126, 45, 7, 0.16) 48%, transparent 78%),
+      rgba(0, 0, 0, 0.72);
   }
 
-  16% {
-    --spot-radius: 54px;
+  79% {
+    background:
+      radial-gradient(ellipse 82% 52% at 49% 100%, rgba(255, 207, 101, 0.28), rgba(116, 42, 8, 0.2) 48%, transparent 78%),
+      rgba(0, 0, 0, 0.46);
   }
 
-  19% {
-    --spot-radius: 210px;
-  }
-
-  25% {
-    --spot-radius: 120px;
-  }
-
-  29% {
-    --spot-radius: 270px;
-  }
-
-  36% {
-    --spot-radius: 250px;
-  }
-
-  41% {
-    --spot-radius: 332px;
-  }
-
-  47% {
-    --spot-radius: 288px;
-  }
-
-  58% {
-    --spot-radius: 372px;
-  }
-
-  72% {
-    --spot-radius: 350px;
+  88% {
+    background:
+      radial-gradient(ellipse 98% 66% at 50% 99%, rgba(255, 210, 112, 0.24), rgba(83, 30, 7, 0.2) 52%, transparent 82%),
+      rgba(0, 0, 0, 0.27);
   }
 
   100% {
-    --spot-radius: 390px;
+    background:
+      radial-gradient(ellipse 104% 72% at 50% 99%, rgba(255, 211, 117, 0.21), rgba(84, 30, 7, 0.18) 52%, transparent 84%),
+      rgba(0, 0, 0, 0.18);
   }
 }
 
-@keyframes warmMap {
+@keyframes candleHueFlicker {
+  0%,
+  100% {
+    background:
+      radial-gradient(ellipse 104% 72% at 50% 99%, rgba(255, 211, 117, 0.21), rgba(84, 30, 7, 0.18) 52%, transparent 84%),
+      rgba(0, 0, 0, 0.18);
+    filter: brightness(1) saturate(1);
+  }
+
+  22% {
+    background:
+      radial-gradient(ellipse 98% 66% at 48% 101%, rgba(255, 178, 70, 0.18), rgba(79, 27, 5, 0.22) 50%, transparent 82%),
+      rgba(0, 0, 0, 0.21);
+    filter: brightness(0.94) saturate(1.08);
+  }
+
+  39% {
+    background:
+      radial-gradient(ellipse 112% 76% at 52% 98%, rgba(255, 229, 140, 0.25), rgba(92, 31, 6, 0.16) 53%, transparent 85%),
+      rgba(0, 0, 0, 0.15);
+    filter: brightness(1.08) saturate(0.96);
+  }
+
+  57% {
+    background:
+      radial-gradient(ellipse 96% 66% at 50% 102%, rgba(239, 142, 40, 0.18), rgba(76, 26, 5, 0.23) 48%, transparent 82%),
+      rgba(0, 0, 0, 0.22);
+    filter: brightness(0.92) saturate(1.14);
+  }
+
+  74% {
+    background:
+      radial-gradient(ellipse 108% 74% at 49% 99%, rgba(255, 220, 124, 0.23), rgba(84, 29, 6, 0.18) 54%, transparent 84%),
+      rgba(0, 0, 0, 0.17);
+    filter: brightness(1.04) saturate(1.02);
+  }
+}
+
+@keyframes candleFlameCatch {
+  0%,
+  62% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.28, 0.12);
+  }
+
+  64% {
+    opacity: 0.58;
+    transform: translateX(-50%) scale(0.42, 0.28);
+  }
+
+  65% {
+    opacity: 0.12;
+    transform: translateX(-50%) scale(0.3, 0.14);
+  }
+
+  70% {
+    opacity: 0.64;
+    transform: translateX(-50%) scale(0.78, 0.7);
+  }
+
+  100% {
+    opacity: 0.58;
+    transform: translateX(-50%) scale(1, 1);
+  }
+}
+
+@keyframes candleFlameFlicker {
+  0%,
+  100% {
+    opacity: 0.56;
+    transform: translateX(-50%) scale(1, 1);
+  }
+
+  18% {
+    opacity: 0.66;
+    transform: translateX(-49%) scale(0.98, 1.04);
+  }
+
+  43% {
+    opacity: 0.46;
+    transform: translateX(-52%) scale(1.06, 0.96);
+  }
+
+  67% {
+    opacity: 0.62;
+    transform: translateX(-48%) scale(0.96, 1.06);
+  }
+}
+
+@keyframes candleGlowCatch {
+  0%,
+  62% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.35);
+  }
+
+  65% {
+    opacity: 0.12;
+    transform: translateX(-50%) scale(0.45);
+  }
+
+  76% {
+    opacity: 0.56;
+    transform: translateX(-50%) scale(0.82);
+  }
+
+  100% {
+    opacity: 0.48;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes candleGlowFlicker {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translateX(-50%) scale(1);
+  }
+
+  28% {
+    opacity: 0.36;
+    transform: translateX(-50%) scale(0.96, 0.9);
+  }
+
+  52% {
+    opacity: 0.58;
+    transform: translateX(-50%) scale(1.04, 1.08);
+  }
+
+  81% {
+    opacity: 0.42;
+    transform: translateX(-50%) scale(0.98, 1.02);
+  }
+}
+
+@keyframes candleAmbientRise {
   to {
     opacity: 1;
+  }
+}
+
+@keyframes candleAmbientFlicker {
+  0%,
+  100% {
+    opacity: 0.96;
+    filter: hue-rotate(0deg) brightness(1);
+  }
+
+  31% {
+    opacity: 0.78;
+    filter: hue-rotate(-8deg) brightness(0.92);
+  }
+
+  47% {
+    opacity: 1;
+    filter: hue-rotate(5deg) brightness(1.08);
+  }
+
+  72% {
+    opacity: 0.86;
+    filter: hue-rotate(-4deg) brightness(0.96);
   }
 }
 
@@ -834,11 +1065,12 @@ h1,
   }
 
   .map-tools {
-    padding: 0.9rem;
+    width: min(244px, calc(100vw - 1rem));
+    padding: 0.55rem;
   }
 
   .stats-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .ledger-heading {
@@ -860,6 +1092,8 @@ h1,
   }
 
   .login-curtain {
-    --spot-radius: 390px;
+    background:
+      radial-gradient(ellipse 104% 72% at 50% 99%, rgba(255, 211, 117, 0.21), rgba(84, 30, 7, 0.18) 52%, transparent 84%),
+      rgba(0, 0, 0, 0.18);
   }
 }

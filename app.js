@@ -4,11 +4,6 @@
     auth: "karaokequest-fl-auth",
   };
 
-  const LEGACY_STORAGE_KEYS = {
-    pins: "karaokequest-cfl-pins",
-    auth: "karaokequest-cfl-auth",
-  };
-
   const LOGIN_CREDENTIALS = {
     username: "Flippers808",
     password: "Weemen",
@@ -122,7 +117,6 @@
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.auth);
-    localStorage.removeItem(LEGACY_STORAGE_KEYS.auth);
     state.placing = false;
     els.appScreen.classList.add("hidden");
     els.loginScreen.classList.remove("hidden");
@@ -291,7 +285,7 @@
         button.type = "button";
         button.className = "delete-button";
         button.setAttribute("aria-label", `Delete ${pin.name}`);
-        button.textContent = "X";
+        button.textContent = "Remove";
         button.addEventListener("click", () => deletePin(pin.id));
 
         card.append(details, coordinates, button);
@@ -490,21 +484,8 @@
   }
 
   function readPins() {
-    const currentPins = readStoredPins(STORAGE_KEYS.pins);
-    if (currentPins.length) {
-      return currentPins;
-    }
-
-    const legacyPins = readStoredPins(LEGACY_STORAGE_KEYS.pins);
-    if (legacyPins.length) {
-      localStorage.setItem(STORAGE_KEYS.pins, JSON.stringify(legacyPins));
-    }
-    return legacyPins;
-  }
-
-  function readStoredPins(key) {
     try {
-      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.pins) || "[]");
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
@@ -513,16 +494,10 @@
 
   function persistPins() {
     localStorage.setItem(STORAGE_KEYS.pins, JSON.stringify(state.pins));
-    localStorage.removeItem(LEGACY_STORAGE_KEYS.pins);
   }
 
   function hasActiveSession() {
-    const hasCurrentAuth = localStorage.getItem(STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken;
-    const hasLegacyAuth = localStorage.getItem(LEGACY_STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken;
-    if (hasLegacyAuth && !hasCurrentAuth) {
-      localStorage.setItem(STORAGE_KEYS.auth, LOGIN_CREDENTIALS.authToken);
-    }
-    return hasCurrentAuth || hasLegacyAuth;
+    return localStorage.getItem(STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken;
   }
 
   function formatDegrees(lat, lng) {

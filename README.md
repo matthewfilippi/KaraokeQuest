@@ -1,6 +1,6 @@
-# KaraokeQuest: CFL
+# KaraokeQuest: FL
 
-A static treasure-map karaoke locator for Central Florida.
+A static treasure-map karaoke locator for Florida.
 
 ## Upload to GitHub
 
@@ -10,11 +10,11 @@ A static treasure-map karaoke locator for Central Florida.
    - `styles.css`
    - `app.js`
    - `login-treasure-map.png`
-   - `central-florida-treasure-map.png`
 3. To publish it, open the repo's **Settings > Pages** and deploy from the `main` branch root.
 
 ## Notes
 
-- The login accepts any non-empty login and password in this prototype.
+- The login is `Flippers808` and the password is `Weemen`.
 - Pins and ledger entries are saved in the visitor's browser using `localStorage`.
+- The map uses live OpenStreetMap tiles through Leaflet and is limited to Florida.
 - The site will use `JackSkull.woff2` if you add a licensed copy of the Jack Skull font to the repository root. Until then, it uses pirate-style fallback fonts.
