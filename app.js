@@ -20,6 +20,7 @@
   const state = {
     pins: readPins(),
     pendingPin: null,
+    revisingPinId: null,
     placing: false,
     map: null,
     markerLayer: null,
@@ -54,6 +55,12 @@
     locationDescription: document.getElementById("locationDescription"),
     pinCoordinates: document.getElementById("pinCoordinates"),
     cancelPinButton: document.getElementById("cancelPinButton"),
+    reviseDialog: document.getElementById("reviseDialog"),
+    reviseForm: document.getElementById("reviseForm"),
+    reviseLocationName: document.getElementById("reviseLocationName"),
+    reviseDescription: document.getElementById("reviseDescription"),
+    reviseCoordinates: document.getElementById("reviseCoordinates"),
+    cancelReviseButton: document.getElementById("cancelReviseButton"),
   };
 
   hydrateSession();
@@ -73,11 +80,16 @@
     els.locationSearchForm.addEventListener("submit", handleLocationSearch);
     els.pinForm.addEventListener("submit", savePin);
     els.cancelPinButton.addEventListener("click", closePinDialog);
+    els.reviseForm.addEventListener("submit", saveRevision);
+    els.cancelReviseButton.addEventListener("click", closeReviseDialog);
     els.pinDialog.addEventListener("cancel", () => {
       state.pendingPin = null;
       state.placing = false;
       setSearchStatus("");
       renderMode();
+    });
+    els.reviseDialog.addEventListener("cancel", () => {
+      state.revisingPinId = null;
     });
     els.tabs.forEach((tab) => {
       tab.addEventListener("click", () => switchView(tab.dataset.view));
@@ -151,6 +163,24 @@
     els.mapBoard.focus();
   }
 
+  function openReviseDialog(pin) {
+    state.revisingPinId = pin.id;
+    els.reviseLocationName.textContent = pin.name;
+    els.reviseDescription.value = pin.description;
+    els.reviseCoordinates.textContent = formatDegrees(pin.lat, pin.lng);
+    els.reviseDialog.showModal();
+    window.setTimeout(() => {
+      els.reviseDescription.focus();
+      els.reviseDescription.select();
+    }, 0);
+  }
+
+  function closeReviseDialog() {
+    state.revisingPinId = null;
+    els.reviseDialog.close();
+    els.ledgerList.focus();
+  }
+
   function savePin(event) {
     event.preventDefault();
 
@@ -180,6 +210,23 @@
     render();
   }
 
+  function saveRevision(event) {
+    event.preventDefault();
+
+    const pin = state.pins.find((entry) => entry.id === state.revisingPinId);
+    const description = els.reviseDescription.value.trim();
+    if (!pin || !description) {
+      return;
+    }
+
+    pin.description = description;
+    pin.updatedAt = new Date().toISOString();
+    state.revisingPinId = null;
+    persistPins();
+    els.reviseDialog.close();
+    render();
+  }
+
   function clearPins() {
     if (!state.pins.length) {
       return;
@@ -191,12 +238,6 @@
     }
 
     state.pins = [];
-    persistPins();
-    render();
-  }
-
-  function deletePin(pinId) {
-    state.pins = state.pins.filter((pin) => pin.id !== pinId);
     persistPins();
     render();
   }
@@ -284,10 +325,10 @@
 
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "delete-button";
-        button.setAttribute("aria-label", `Delete ${pin.name}`);
-        button.textContent = "Remove";
-        button.addEventListener("click", () => deletePin(pin.id));
+        button.className = "revise-button";
+        button.setAttribute("aria-label", `Revise description for ${pin.name}`);
+        button.textContent = "Revise";
+        button.addEventListener("click", () => openReviseDialog(pin));
 
         card.append(details, coordinates, button);
         els.ledgerList.appendChild(card);

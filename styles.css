@@ -755,7 +755,7 @@ h1,
   white-space: nowrap;
 }
 
-.delete-button {
+.revise-button {
   min-width: 76px;
   height: 38px;
   border: 1px solid rgba(70, 38, 18, 0.28);
@@ -764,6 +764,13 @@ h1,
   color: var(--ink);
   font-weight: 900;
   padding-inline: 0.75rem;
+}
+
+.revision-target {
+  margin: -0.1rem 0 0.1rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 900;
 }
 
 .empty-ledger {

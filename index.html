@@ -90,6 +90,23 @@
       </form>
     </dialog>
 
+    <dialog id="reviseDialog" class="pin-dialog">
+      <form id="reviseForm" method="dialog">
+        <div class="dialog-heading">
+          <p class="kicker">Revise Notes</p>
+          <h2>Ledger Entry</h2>
+        </div>
+        <p id="reviseLocationName" class="revision-target"></p>
+        <label for="reviseDescription">Description</label>
+        <textarea id="reviseDescription" name="reviseDescription" rows="5" maxlength="260" required></textarea>
+        <p id="reviseCoordinates" class="coordinate-preview"></p>
+        <menu class="dialog-actions">
+          <button id="cancelReviseButton" class="secondary-button" type="button">Cancel</button>
+          <button class="primary-button" type="submit">Save Revision</button>
+        </menu>
+      </form>
+    </dialog>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="./app.js"></script>
   </body>
