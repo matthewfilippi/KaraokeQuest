@@ -1,5 +1,10 @@
 (function () {
   const STORAGE_KEYS = {
+    pins: "karaokequest-fl-pins",
+    auth: "karaokequest-fl-auth",
+  };
+
+  const LEGACY_STORAGE_KEYS = {
     pins: "karaokequest-cfl-pins",
     auth: "karaokequest-cfl-auth",
   };
@@ -11,10 +16,10 @@
   };
 
   const MAP_BOUNDS = {
-    north: 29.35,
-    south: 27.78,
-    west: -82.85,
-    east: -81.75,
+    north: 31.15,
+    south: 24.35,
+    west: -87.75,
+    east: -79.65,
   };
 
   const state = {
@@ -74,6 +79,9 @@
     els.cancelPinButton.addEventListener("click", closePinDialog);
     els.pinDialog.addEventListener("cancel", () => {
       state.pendingPin = null;
+      state.placing = false;
+      setSearchStatus("");
+      renderMode();
     });
     els.tabs.forEach((tab) => {
       tab.addEventListener("click", () => switchView(tab.dataset.view));
@@ -81,10 +89,10 @@
   }
 
   function hydrateSession() {
-    if (localStorage.getItem(STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken) {
+    if (hasActiveSession()) {
       els.loginScreen.classList.add("hidden");
       els.appScreen.classList.remove("hidden");
-      refreshMapSize();
+      fitFloridaMap();
     }
   }
 
@@ -108,12 +116,13 @@
     els.loginError.textContent = "";
     els.loginScreen.classList.add("hidden");
     els.appScreen.classList.remove("hidden");
-    refreshMapSize();
+    fitFloridaMap();
     els.dropPinButton.focus();
   }
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEYS.auth);
+    localStorage.removeItem(LEGACY_STORAGE_KEYS.auth);
     state.placing = false;
     els.appScreen.classList.add("hidden");
     els.loginScreen.classList.remove("hidden");
@@ -140,7 +149,10 @@
 
   function closePinDialog() {
     state.pendingPin = null;
+    state.placing = false;
+    setSearchStatus("");
     els.pinDialog.close();
+    renderMode();
     els.mapBoard.focus();
   }
 
@@ -293,16 +305,13 @@
       return;
     }
 
-    const bounds = [
-      [MAP_BOUNDS.south, MAP_BOUNDS.west],
-      [MAP_BOUNDS.north, MAP_BOUNDS.east],
-    ];
+    const bounds = getFloridaBounds();
 
     state.map = L.map(els.mapBoard, {
       zoomControl: false,
       maxBounds: bounds,
       maxBoundsViscosity: 0.92,
-      minZoom: 8,
+      minZoom: 6,
       maxZoom: 18,
     });
 
@@ -344,7 +353,7 @@
     try {
       const result = await findLocation(query);
       if (!result) {
-        setSearchStatus("No result found between Ocala and Tampa.");
+        setSearchStatus("No result found in Florida.");
         return;
       }
 
@@ -380,8 +389,8 @@
   async function findLocation(query) {
     const params = new URLSearchParams({
       q: `${query}, Florida`,
-      lat: "28.61",
-      lon: "-82.25",
+      lat: "28.45",
+      lon: "-82.20",
       limit: "8",
     });
 
@@ -443,6 +452,24 @@
     window.setTimeout(() => state.map.invalidateSize(), 0);
   }
 
+  function fitFloridaMap() {
+    if (!state.map) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      state.map.invalidateSize();
+      state.map.fitBounds(getFloridaBounds(), { padding: [18, 18] });
+    }, 0);
+  }
+
+  function getFloridaBounds() {
+    return [
+      [MAP_BOUNDS.south, MAP_BOUNDS.west],
+      [MAP_BOUNDS.north, MAP_BOUNDS.east],
+    ];
+  }
+
   function setSearchStatus(message) {
     if (els.locationSearchStatus) {
       els.locationSearchStatus.textContent = message;
@@ -463,8 +490,21 @@
   }
 
   function readPins() {
+    const currentPins = readStoredPins(STORAGE_KEYS.pins);
+    if (currentPins.length) {
+      return currentPins;
+    }
+
+    const legacyPins = readStoredPins(LEGACY_STORAGE_KEYS.pins);
+    if (legacyPins.length) {
+      localStorage.setItem(STORAGE_KEYS.pins, JSON.stringify(legacyPins));
+    }
+    return legacyPins;
+  }
+
+  function readStoredPins(key) {
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.pins) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
@@ -473,6 +513,16 @@
 
   function persistPins() {
     localStorage.setItem(STORAGE_KEYS.pins, JSON.stringify(state.pins));
+    localStorage.removeItem(LEGACY_STORAGE_KEYS.pins);
+  }
+
+  function hasActiveSession() {
+    const hasCurrentAuth = localStorage.getItem(STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken;
+    const hasLegacyAuth = localStorage.getItem(LEGACY_STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken;
+    if (hasLegacyAuth && !hasCurrentAuth) {
+      localStorage.setItem(STORAGE_KEYS.auth, LOGIN_CREDENTIALS.authToken);
+    }
+    return hasCurrentAuth || hasLegacyAuth;
   }
 
   function formatDegrees(lat, lng) {
