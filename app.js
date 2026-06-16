@@ -4,17 +4,26 @@
     auth: "karaokequest-cfl-auth",
   };
 
-  const CENTRAL_FLORIDA_BOUNDS = {
-    north: 29.45,
-    south: 27.15,
-    west: -82.95,
-    east: -80.35,
+  const LOGIN_CREDENTIALS = {
+    username: "Flippers808",
+    password: "Weemen",
+    authToken: "flippers808-weemen-v2",
+  };
+
+  const MAP_BOUNDS = {
+    north: 29.35,
+    south: 27.78,
+    west: -82.85,
+    east: -81.75,
   };
 
   const state = {
     pins: readPins(),
     pendingPin: null,
     placing: false,
+    map: null,
+    markerLayer: null,
+    searchMarker: null,
   };
 
   const els = {
@@ -26,12 +35,14 @@
     loginError: document.getElementById("loginError"),
     logoutButton: document.getElementById("logoutButton"),
     mapBoard: document.getElementById("mapBoard"),
-    pinLayer: document.getElementById("pinLayer"),
     pinCount: document.getElementById("pinCount"),
     activeModeText: document.getElementById("activeModeText"),
     dropPinButton: document.getElementById("dropPinButton"),
     ledgerDropPinButton: document.getElementById("ledgerDropPinButton"),
     clearPinsButton: document.getElementById("clearPinsButton"),
+    locationSearchForm: document.getElementById("locationSearchForm"),
+    locationSearch: document.getElementById("locationSearch"),
+    locationSearchStatus: document.getElementById("locationSearchStatus"),
     mapView: document.getElementById("mapView"),
     ledgerView: document.getElementById("ledgerView"),
     ledgerList: document.getElementById("ledgerList"),
@@ -45,6 +56,7 @@
   };
 
   hydrateSession();
+  initMap();
   bindEvents();
   render();
 
@@ -57,8 +69,7 @@
       enablePinMode();
     });
     els.clearPinsButton.addEventListener("click", clearPins);
-    els.mapBoard.addEventListener("click", handleMapClick);
-    els.mapBoard.addEventListener("keydown", handleMapKeydown);
+    els.locationSearchForm.addEventListener("submit", handleLocationSearch);
     els.pinForm.addEventListener("submit", savePin);
     els.cancelPinButton.addEventListener("click", closePinDialog);
     els.pinDialog.addEventListener("cancel", () => {
@@ -70,9 +81,10 @@
   }
 
   function hydrateSession() {
-    if (localStorage.getItem(STORAGE_KEYS.auth) === "true") {
+    if (localStorage.getItem(STORAGE_KEYS.auth) === LOGIN_CREDENTIALS.authToken) {
       els.loginScreen.classList.add("hidden");
       els.appScreen.classList.remove("hidden");
+      refreshMapSize();
     }
   }
 
@@ -87,10 +99,16 @@
       return;
     }
 
-    localStorage.setItem(STORAGE_KEYS.auth, "true");
+    if (username !== LOGIN_CREDENTIALS.username || password !== LOGIN_CREDENTIALS.password) {
+      els.loginError.textContent = "Incorrect login or password.";
+      return;
+    }
+
+    localStorage.setItem(STORAGE_KEYS.auth, LOGIN_CREDENTIALS.authToken);
     els.loginError.textContent = "";
     els.loginScreen.classList.add("hidden");
     els.appScreen.classList.remove("hidden");
+    refreshMapSize();
     els.dropPinButton.focus();
   }
 
@@ -106,36 +124,15 @@
 
   function enablePinMode() {
     state.placing = true;
+    setSearchStatus("Click the map where the karaoke spot belongs.");
     renderMode();
-    els.mapBoard.focus();
+    refreshMapSize();
   }
 
-  function handleMapClick(event) {
-    if (!state.placing || event.target.closest(".pin-marker")) {
-      return;
-    }
-
-    const point = getMapPoint(event.clientX, event.clientY);
-    openPinDialog(point);
-  }
-
-  function handleMapKeydown(event) {
-    if (!state.placing || event.key !== "Enter") {
-      return;
-    }
-
-    openPinDialog({
-      xPercent: 50,
-      yPercent: 50,
-      lat: (CENTRAL_FLORIDA_BOUNDS.north + CENTRAL_FLORIDA_BOUNDS.south) / 2,
-      lng: (CENTRAL_FLORIDA_BOUNDS.west + CENTRAL_FLORIDA_BOUNDS.east) / 2,
-    });
-  }
-
-  function openPinDialog(point) {
+  function openPinDialog(point, defaults = {}) {
     state.pendingPin = point;
-    els.locationName.value = "";
-    els.locationDescription.value = "";
+    els.locationName.value = defaults.name || "";
+    els.locationDescription.value = defaults.description || "";
     els.pinCoordinates.textContent = formatDegrees(point.lat, point.lng);
     els.pinDialog.showModal();
     window.setTimeout(() => els.locationName.focus(), 0);
@@ -160,8 +157,6 @@
       description: els.locationDescription.value.trim(),
       lat: state.pendingPin.lat,
       lng: state.pendingPin.lng,
-      xPercent: state.pendingPin.xPercent,
-      yPercent: state.pendingPin.yPercent,
       createdAt: new Date().toISOString(),
     };
 
@@ -172,6 +167,7 @@
     state.pins.push(pin);
     state.pendingPin = null;
     state.placing = false;
+    setSearchStatus("");
     persistPins();
     els.pinDialog.close();
     render();
@@ -198,21 +194,6 @@
     render();
   }
 
-  function getMapPoint(clientX, clientY) {
-    const rect = els.mapBoard.getBoundingClientRect();
-    const x = clamp((clientX - rect.left) / rect.width, 0, 1);
-    const y = clamp((clientY - rect.top) / rect.height, 0, 1);
-    const lat = CENTRAL_FLORIDA_BOUNDS.north - y * (CENTRAL_FLORIDA_BOUNDS.north - CENTRAL_FLORIDA_BOUNDS.south);
-    const lng = CENTRAL_FLORIDA_BOUNDS.west + x * (CENTRAL_FLORIDA_BOUNDS.east - CENTRAL_FLORIDA_BOUNDS.west);
-
-    return {
-      xPercent: x * 100,
-      yPercent: y * 100,
-      lat,
-      lng,
-    };
-  }
-
   function switchView(viewName) {
     const isLedger = viewName === "ledger";
     els.mapView.classList.toggle("hidden", isLedger);
@@ -222,6 +203,9 @@
       tab.classList.toggle("active", active);
       tab.setAttribute("aria-current", active ? "page" : "false");
     });
+    if (!isLedger) {
+      refreshMapSize();
+    }
     render();
   }
 
@@ -233,26 +217,23 @@
 
   function renderMode() {
     els.mapBoard.classList.toggle("placing", state.placing);
-    els.dropPinButton.textContent = state.placing ? "Place Pin" : "Drop Pin";
+    els.dropPinButton.textContent = state.placing ? "Click Map" : "Drop Pin";
     els.activeModeText.textContent = state.placing ? "Placing" : "Browse";
   }
 
   function renderPins() {
     els.pinCount.textContent = String(state.pins.length);
-    els.pinLayer.innerHTML = "";
+    if (!state.markerLayer) {
+      return;
+    }
+
+    state.markerLayer.clearLayers();
 
     state.pins.forEach((pin) => {
-      const marker = document.createElement("button");
-      marker.type = "button";
-      marker.className = "pin-marker";
-      marker.style.left = `${pin.xPercent}%`;
-      marker.style.top = `${pin.yPercent}%`;
-      marker.setAttribute("aria-label", `${pin.name}, ${formatDegrees(pin.lat, pin.lng)}`);
+      const marker = L.marker([pin.lat, pin.lng], { icon: createPinIcon() })
+        .bindPopup(`<strong>${escapeHtml(pin.name)}</strong><br>${escapeHtml(pin.description)}<br>${formatDegrees(pin.lat, pin.lng)}`);
 
-      const tooltip = document.createElement("span");
-      tooltip.textContent = pin.name;
-      marker.appendChild(tooltip);
-      marker.addEventListener("click", () => {
+      marker.on("click", () => {
         switchView("ledger");
         const row = document.querySelector(`[data-pin-id="${pin.id}"]`);
         if (row) {
@@ -260,7 +241,7 @@
         }
       });
 
-      els.pinLayer.appendChild(marker);
+      state.markerLayer.addLayer(marker);
     });
   }
 
@@ -304,6 +285,181 @@
         card.append(details, coordinates, button);
         els.ledgerList.appendChild(card);
       });
+  }
+
+  function initMap() {
+    if (!window.L) {
+      setSearchStatus("Map tools are loading. Refresh if the map does not appear.");
+      return;
+    }
+
+    const bounds = [
+      [MAP_BOUNDS.south, MAP_BOUNDS.west],
+      [MAP_BOUNDS.north, MAP_BOUNDS.east],
+    ];
+
+    state.map = L.map(els.mapBoard, {
+      zoomControl: false,
+      maxBounds: bounds,
+      maxBoundsViscosity: 0.92,
+      minZoom: 8,
+      maxZoom: 18,
+    });
+
+    L.control.zoom({ position: "bottomright" }).addTo(state.map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(state.map);
+
+    state.markerLayer = L.layerGroup().addTo(state.map);
+    state.map.fitBounds(bounds, { padding: [18, 18] });
+
+    state.map.on("click", (event) => {
+      if (!state.placing) {
+        return;
+      }
+
+      openPinDialog({
+        lat: event.latlng.lat,
+        lng: event.latlng.lng,
+      });
+    });
+
+    refreshMapSize();
+  }
+
+  async function handleLocationSearch(event) {
+    event.preventDefault();
+
+    const query = els.locationSearch.value.trim();
+    if (!query) {
+      setSearchStatus("Enter a venue, road, or address.");
+      return;
+    }
+
+    setSearchStatus("Searching the map...");
+
+    try {
+      const result = await findLocation(query);
+      if (!result) {
+        setSearchStatus("No result found between Ocala and Tampa.");
+        return;
+      }
+
+      const [resultLng, resultLat] = result.geometry.coordinates;
+      const point = {
+        lat: Number(resultLat),
+        lng: Number(resultLng),
+      };
+      const name = getResultName(result);
+
+      if (state.searchMarker) {
+        state.map.removeLayer(state.searchMarker);
+      }
+
+      state.searchMarker = L.marker([point.lat, point.lng], { icon: createSearchIcon() })
+        .addTo(state.map)
+        .bindPopup(`<strong>${escapeHtml(name)}</strong><br>${escapeHtml(getResultDescription(result))}`)
+        .openPopup();
+
+      state.map.flyTo([point.lat, point.lng], Math.max(state.map.getZoom(), 14), { duration: 0.8 });
+      state.placing = false;
+      setSearchStatus("Result found. Add details to save the pin.");
+      renderMode();
+      openPinDialog(point, {
+        name,
+        description: getResultDescription(result),
+      });
+    } catch {
+      setSearchStatus("Location search could not connect. Try clicking the map instead.");
+    }
+  }
+
+  async function findLocation(query) {
+    const params = new URLSearchParams({
+      q: `${query}, Florida`,
+      lat: "28.61",
+      lon: "-82.25",
+      limit: "8",
+    });
+
+    const response = await fetch(`https://photon.komoot.io/api/?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error("Search failed");
+    }
+
+    const data = await response.json();
+    return (data.features || []).find((result) => {
+      const [lng, lat] = result.geometry.coordinates;
+      return lat <= MAP_BOUNDS.north && lat >= MAP_BOUNDS.south && lng >= MAP_BOUNDS.west && lng <= MAP_BOUNDS.east;
+    });
+  }
+
+  function getResultName(result) {
+    const properties = result.properties || {};
+    return (properties.name || properties.street || properties.city || "Karaoke Location").trim();
+  }
+
+  function getResultDescription(result) {
+    const properties = result.properties || {};
+    const description = [
+      properties.name,
+      properties.street,
+      properties.city,
+      properties.state,
+      properties.country,
+    ].filter(Boolean).join(", ");
+
+    return description || "Found on the live map.";
+  }
+
+  function createPinIcon() {
+    return L.divIcon({
+      className: "quest-pin-icon",
+      html: "<span></span>",
+      iconSize: [34, 46],
+      iconAnchor: [17, 42],
+      popupAnchor: [0, -38],
+    });
+  }
+
+  function createSearchIcon() {
+    return L.divIcon({
+      className: "quest-search-icon",
+      html: "<span></span>",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -16],
+    });
+  }
+
+  function refreshMapSize() {
+    if (!state.map) {
+      return;
+    }
+
+    window.setTimeout(() => state.map.invalidateSize(), 0);
+  }
+
+  function setSearchStatus(message) {
+    if (els.locationSearchStatus) {
+      els.locationSearchStatus.textContent = message;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (character) => {
+      const entities = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      };
+      return entities[character];
+    });
   }
 
   function readPins() {
