@@ -518,8 +518,8 @@ h1,
     radial-gradient(circle at 29% 78%, rgba(112, 63, 18, 0.13), transparent 18%),
     radial-gradient(circle at 63% 19%, rgba(115, 64, 22, 0.12), transparent 17%),
     radial-gradient(circle at 92% 76%, rgba(61, 26, 7, 0.18), transparent 16%),
-    repeating-linear-gradient(88deg, rgba(83, 49, 19, 0.065) 0 1px, transparent 1px 15px),
-    repeating-linear-gradient(2deg, rgba(255, 248, 221, 0.035) 0 2px, transparent 2px 19px),
+    repeating-linear-gradient(88deg, rgba(83, 49, 19, 0.032) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(2deg, rgba(255, 248, 221, 0.026) 0 2px, transparent 2px 19px),
     linear-gradient(rgba(226, 190, 122, 0.19), rgba(105, 59, 20, 0.12));
   mix-blend-mode: multiply;
 }
@@ -531,8 +531,6 @@ h1,
     radial-gradient(circle at 100% 0, rgba(40, 18, 5, 0.4), transparent 18%),
     radial-gradient(circle at 0 100%, rgba(40, 18, 5, 0.42), transparent 19%),
     radial-gradient(circle at 100% 100%, rgba(40, 18, 5, 0.42), transparent 18%),
-    repeating-linear-gradient(90deg, transparent 0 118px, rgba(69, 39, 14, 0.11) 119px, transparent 121px),
-    repeating-linear-gradient(0deg, transparent 0 132px, rgba(255, 245, 201, 0.07) 133px, transparent 136px),
     linear-gradient(90deg, rgba(42, 21, 7, 0.3), transparent 9%, transparent 91%, rgba(42, 21, 7, 0.3)),
     linear-gradient(0deg, rgba(42, 21, 7, 0.28), transparent 11%, transparent 89%, rgba(42, 21, 7, 0.28));
 }
@@ -547,6 +545,17 @@ h1,
 
 .leaflet-tile {
   filter: sepia(0.98) saturate(0.58) hue-rotate(349deg) brightness(1.02) contrast(0.9);
+}
+
+.leaflet-questGrid-pane,
+.leaflet-questGridPane-pane {
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.quest-map-grid-line {
+  filter: drop-shadow(0 1px 0 rgba(255, 233, 174, 0.12));
+  vector-effect: non-scaling-stroke;
 }
 
 .leaflet-popup-content-wrapper,
@@ -583,21 +592,45 @@ h1,
 .quest-pin-icon span {
   position: relative;
   display: block;
-  width: 30px;
-  height: 30px;
-  border: 3px solid #ffe7a6;
-  border-radius: 50% 50% 50% 0;
-  background: linear-gradient(135deg, #d9362c, #6f120e);
-  box-shadow: 0 8px 15px rgba(36, 5, 3, 0.42);
-  transform: rotate(-45deg);
+  width: 44px;
+  height: 44px;
+  transform: rotate(-7deg);
+  filter:
+    drop-shadow(0 2px 1px rgba(46, 13, 5, 0.32))
+    drop-shadow(0 0 3px rgba(137, 18, 14, 0.18));
 }
 
+.quest-pin-icon span::before,
 .quest-pin-icon span::after {
   content: "";
   position: absolute;
-  inset: 7px;
-  border-radius: 999px;
-  background: #ffe7a6;
+  left: 2px;
+  right: 2px;
+  top: 18px;
+  height: 8px;
+  border-radius: 999px 58% 999px 46%;
+  background:
+    linear-gradient(90deg,
+      transparent 0 2%,
+      rgba(99, 0, 0, 0.92) 3%,
+      #d42a24 24%,
+      #a41412 52%,
+      #7c0b0a 78%,
+      transparent 98% 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 157, 135, 0.3),
+    inset 0 -1px 0 rgba(83, 0, 0, 0.36),
+    0 0 0 1px rgba(98, 0, 0, 0.12);
+  clip-path: polygon(0 42%, 6% 28%, 15% 36%, 27% 24%, 44% 39%, 62% 25%, 78% 37%, 92% 29%, 100% 45%, 97% 72%, 84% 62%, 69% 76%, 51% 61%, 33% 78%, 17% 63%, 4% 73%);
+  transform-origin: 50% 50%;
+}
+
+.quest-pin-icon span::before {
+  transform: rotate(42deg) scaleX(0.98);
+}
+
+.quest-pin-icon span::after {
+  transform: rotate(-48deg) scaleX(1.04);
 }
 
 .quest-search-icon span {

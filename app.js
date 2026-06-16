@@ -23,6 +23,7 @@
     placing: false,
     map: null,
     markerLayer: null,
+    gridLayer: null,
     searchMarker: null,
   };
 
@@ -316,6 +317,7 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(state.map);
 
+    drawMapGrid();
     state.markerLayer = L.layerGroup().addTo(state.map);
     state.map.fitBounds(bounds, { padding: [18, 18] });
 
@@ -422,9 +424,9 @@
     return L.divIcon({
       className: "quest-pin-icon",
       html: "<span></span>",
-      iconSize: [34, 46],
-      iconAnchor: [17, 42],
-      popupAnchor: [0, -38],
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+      popupAnchor: [0, -20],
     });
   }
 
@@ -436,6 +438,49 @@
       iconAnchor: [15, 15],
       popupAnchor: [0, -16],
     });
+  }
+
+  function drawMapGrid() {
+    const gridPane = state.map.createPane("questGridPane");
+    gridPane.style.zIndex = 425;
+    gridPane.style.pointerEvents = "none";
+
+    state.gridLayer = L.layerGroup([], { pane: "questGridPane" }).addTo(state.map);
+
+    for (let lat = 25; lat <= 31; lat += 1) {
+      L.polyline(
+        [
+          [lat, MAP_BOUNDS.west],
+          [lat, MAP_BOUNDS.east],
+        ],
+        getGridLineOptions(lat % 2 === 0)
+      ).addTo(state.gridLayer);
+    }
+
+    for (let lng = -87; lng <= -80; lng += 1) {
+      L.polyline(
+        [
+          [MAP_BOUNDS.south, lng],
+          [MAP_BOUNDS.north, lng],
+        ],
+        getGridLineOptions(lng % 2 === 0)
+      ).addTo(state.gridLayer);
+    }
+  }
+
+  function getGridLineOptions(isMajorLine) {
+    return {
+      pane: "questGridPane",
+      interactive: false,
+      bubblingMouseEvents: false,
+      className: "quest-map-grid-line",
+      color: isMajorLine ? "rgba(92, 43, 18, 0.44)" : "rgba(92, 43, 18, 0.26)",
+      dashArray: isMajorLine ? "10 12" : "5 14",
+      lineCap: "round",
+      lineJoin: "round",
+      opacity: 0.92,
+      weight: isMajorLine ? 1.4 : 1,
+    };
   }
 
   function refreshMapSize() {
