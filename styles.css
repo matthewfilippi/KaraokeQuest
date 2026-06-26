@@ -215,7 +215,7 @@ h1,
 }
 
 .login-form input,
-.pin-dialog input,
+.pin-dialog input:not([type="checkbox"]),
 .pin-dialog textarea {
   width: 100%;
   min-height: 45px;
@@ -228,7 +228,7 @@ h1,
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.34);
 }
 
-.pin-dialog input,
+.pin-dialog input:not([type="checkbox"]),
 .pin-dialog textarea {
   background: rgba(255, 245, 214, 0.84);
   color: var(--ink);
@@ -237,7 +237,7 @@ h1,
 }
 
 .login-form input:focus,
-.pin-dialog input:focus,
+.pin-dialog input:not([type="checkbox"]):focus,
 .pin-dialog textarea:focus {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px rgba(225, 173, 74, 0.28);
@@ -320,7 +320,7 @@ h1,
 
 .view-tabs {
   display: inline-grid;
-  grid-template-columns: repeat(2, minmax(92px, 1fr));
+  grid-template-columns: repeat(3, minmax(84px, 1fr));
   padding: 4px;
   border: 1px solid rgba(255, 230, 166, 0.25);
   border-radius: 8px;
@@ -669,7 +669,8 @@ h1,
   transform: translateX(-50%) rotate(45deg) translateY(0);
 }
 
-.ledger-view {
+.ledger-view,
+.alcohol-view {
   padding: clamp(1rem, 3vw, 2.2rem);
   background:
     linear-gradient(rgba(248, 230, 188, 0.88), rgba(226, 190, 122, 0.9)),
@@ -707,6 +708,27 @@ h1,
   margin: 0 auto;
 }
 
+.alcohol-scale-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.scale-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 0.65rem;
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.alcohol-scale-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .ledger-card {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) minmax(190px, auto) auto;
@@ -725,6 +747,81 @@ h1,
 .ledger-card p {
   margin: 0;
   color: var(--ink-soft);
+}
+
+.ledger-meta {
+  margin-top: 0.35rem !important;
+  color: var(--red) !important;
+  font-weight: 900;
+}
+
+.alcohol-card {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.85fr) minmax(240px, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(255, 246, 219, 0.9), rgba(224, 190, 125, 0.86)),
+    repeating-linear-gradient(92deg, rgba(93, 55, 29, 0.06) 0 1px, transparent 1px 14px);
+  color: var(--ink);
+  border: 1px solid rgba(93, 55, 29, 0.32);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 222, 0.42),
+    0 10px 24px rgba(91, 57, 31, 0.2);
+}
+
+.alcohol-card h3 {
+  margin: 0 0 0.25rem;
+  color: var(--ink);
+  font-size: 1.2rem;
+}
+
+.alcohol-card p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.alcohol-price {
+  color: var(--red) !important;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.price-track {
+  position: relative;
+  min-height: 34px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(47, 107, 98, 0.72), rgba(225, 173, 74, 0.84), rgba(166, 42, 32, 0.82)),
+    repeating-linear-gradient(90deg, rgba(255, 248, 222, 0.28) 0 1px, transparent 1px 10%);
+  border: 1px solid rgba(83, 49, 22, 0.3);
+  box-shadow:
+    inset 0 2px 8px rgba(61, 32, 12, 0.2),
+    0 8px 18px rgba(91, 57, 31, 0.14);
+}
+
+.price-range-fill {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  min-width: 8px;
+  border-radius: 999px;
+  background: rgba(255, 247, 220, 0.72);
+  border: 1px solid rgba(86, 44, 17, 0.25);
+}
+
+.price-marker {
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #9e1712;
+  border: 3px solid rgba(255, 236, 184, 0.92);
+  box-shadow: 0 4px 10px rgba(54, 18, 5, 0.32);
+  transform: translate(-50%, -50%);
 }
 
 .ledger-coords {
@@ -785,6 +882,60 @@ h1,
 .dialog-heading .kicker,
 .pin-dialog label {
   color: var(--ink);
+}
+
+.alcohol-fieldset {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.1rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(82, 49, 25, 0.28);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(139, 81, 28, 0.1), transparent 36%),
+    rgba(255, 241, 198, 0.34);
+}
+
+.alcohol-fieldset legend {
+  padding: 0 0.35rem;
+  color: var(--red);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 26px;
+}
+
+.check-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--red);
+}
+
+.price-range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.price-range-grid label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.price-range-grid span {
+  font-size: 0.66rem;
+}
+
+.price-range-grid input:disabled {
+  opacity: 0.48;
 }
 
 .coordinate-preview {
@@ -1060,7 +1211,8 @@ h1,
     left: 0.75rem;
   }
 
-  .ledger-card {
+  .ledger-card,
+  .alcohol-card {
     grid-template-columns: 1fr;
   }
 
@@ -1089,6 +1241,10 @@ h1,
   }
 
   .ledger-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .price-range-grid {
     grid-template-columns: 1fr;
   }
 

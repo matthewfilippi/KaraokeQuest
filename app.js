@@ -45,20 +45,29 @@
     locationSearchStatus: document.getElementById("locationSearchStatus"),
     mapView: document.getElementById("mapView"),
     ledgerView: document.getElementById("ledgerView"),
+    alcoholView: document.getElementById("alcoholView"),
     ledgerList: document.getElementById("ledgerList"),
+    alcoholScaleList: document.getElementById("alcoholScaleList"),
     tabs: Array.from(document.querySelectorAll(".tab-button")),
     pinDialog: document.getElementById("pinDialog"),
     pinForm: document.getElementById("pinForm"),
     locationName: document.getElementById("locationName"),
     locationDescription: document.getElementById("locationDescription"),
+    alcoholConfirmed: document.getElementById("alcoholConfirmed"),
+    alcoholLow: document.getElementById("alcoholLow"),
+    alcoholHigh: document.getElementById("alcoholHigh"),
     pinCoordinates: document.getElementById("pinCoordinates"),
     cancelPinButton: document.getElementById("cancelPinButton"),
     reviseDialog: document.getElementById("reviseDialog"),
     reviseForm: document.getElementById("reviseForm"),
     reviseLocationName: document.getElementById("reviseLocationName"),
     reviseDescription: document.getElementById("reviseDescription"),
+    reviseAlcoholConfirmed: document.getElementById("reviseAlcoholConfirmed"),
+    reviseAlcoholLow: document.getElementById("reviseAlcoholLow"),
+    reviseAlcoholHigh: document.getElementById("reviseAlcoholHigh"),
     reviseCoordinates: document.getElementById("reviseCoordinates"),
     cancelReviseButton: document.getElementById("cancelReviseButton"),
+    alcoholDropPinButton: document.getElementById("alcoholDropPinButton"),
   };
 
   hydrateSession();
@@ -74,12 +83,20 @@
       switchView("map");
       enablePinMode();
     });
+    els.alcoholDropPinButton.addEventListener("click", () => {
+      switchView("map");
+      enablePinMode();
+    });
     els.clearPinsButton.addEventListener("click", clearPins);
     els.locationSearchForm.addEventListener("submit", handleLocationSearch);
     els.pinForm.addEventListener("submit", savePin);
     els.cancelPinButton.addEventListener("click", closePinDialog);
     els.reviseForm.addEventListener("submit", saveRevision);
     els.cancelReviseButton.addEventListener("click", closeReviseDialog);
+    els.alcoholConfirmed.addEventListener("change", () => syncAlcoholInputs("pin", true));
+    els.reviseAlcoholConfirmed.addEventListener("change", () => syncAlcoholInputs("revise", true));
+    syncAlcoholInputs("pin", false);
+    syncAlcoholInputs("revise", false);
     els.pinDialog.addEventListener("cancel", () => {
       state.pendingPin = null;
       state.placing = false;
@@ -147,6 +164,7 @@
     state.pendingPin = point;
     els.locationName.value = defaults.name || "";
     els.locationDescription.value = defaults.description || "";
+    setAlcoholFields("pin", false, null, null);
     els.pinCoordinates.textContent = formatDegrees(point.lat, point.lng);
     els.pinDialog.showModal();
     window.setTimeout(() => els.locationName.focus(), 0);
@@ -162,9 +180,11 @@
   }
 
   function openReviseDialog(pin) {
+    const alcohol = getAlcoholInfo(pin);
     state.revisingPinId = pin.id;
     els.reviseLocationName.textContent = pin.name;
     els.reviseDescription.value = pin.description;
+    setAlcoholFields("revise", Boolean(alcohol), alcohol?.low ?? null, alcohol?.high ?? null);
     els.reviseCoordinates.textContent = formatDegrees(pin.lat, pin.lng);
     els.reviseDialog.showModal();
     window.setTimeout(() => {
@@ -186,6 +206,11 @@
       return;
     }
 
+    const alcohol = readAlcoholFields("pin");
+    if (!alcohol.valid) {
+      return;
+    }
+
     const pin = {
       id: String(Date.now()),
       name: els.locationName.value.trim(),
@@ -193,6 +218,9 @@
       lat: state.pendingPin.lat,
       lng: state.pendingPin.lng,
       createdAt: new Date().toISOString(),
+      alcoholConfirmed: alcohol.confirmed,
+      alcoholLow: alcohol.low,
+      alcoholHigh: alcohol.high,
     };
 
     if (!pin.name || !pin.description) {
@@ -213,11 +241,19 @@
 
     const pin = state.pins.find((entry) => entry.id === state.revisingPinId);
     const description = els.reviseDescription.value.trim();
+    const alcohol = readAlcoholFields("revise");
     if (!pin || !description) {
       return;
     }
 
+    if (!alcohol.valid) {
+      return;
+    }
+
     pin.description = description;
+    pin.alcoholConfirmed = alcohol.confirmed;
+    pin.alcoholLow = alcohol.low;
+    pin.alcoholHigh = alcohol.high;
     pin.updatedAt = new Date().toISOString();
     state.revisingPinId = null;
     persistPins();
@@ -241,15 +277,16 @@
   }
 
   function switchView(viewName) {
-    const isLedger = viewName === "ledger";
-    els.mapView.classList.toggle("hidden", isLedger);
-    els.ledgerView.classList.toggle("hidden", !isLedger);
+    const isMap = viewName === "map";
+    els.mapView.classList.toggle("hidden", !isMap);
+    els.ledgerView.classList.toggle("hidden", viewName !== "ledger");
+    els.alcoholView.classList.toggle("hidden", viewName !== "alcohol");
     els.tabs.forEach((tab) => {
       const active = tab.dataset.view === viewName;
       tab.classList.toggle("active", active);
       tab.setAttribute("aria-current", active ? "page" : "false");
     });
-    if (!isLedger) {
+    if (isMap) {
       refreshMapSize();
     }
     render();
@@ -259,6 +296,7 @@
     renderMode();
     renderPins();
     renderLedger();
+    renderAlcoholScale();
   }
 
   function renderMode() {
@@ -304,6 +342,7 @@
       .slice()
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach((pin) => {
+        const alcohol = getAlcoholInfo(pin);
         const card = document.createElement("article");
         card.className = "ledger-card";
         card.dataset.pinId = pin.id;
@@ -314,6 +353,12 @@
         const description = document.createElement("p");
         description.textContent = pin.description;
         details.append(title, description);
+        if (alcohol) {
+          const alcoholLine = document.createElement("p");
+          alcoholLine.className = "ledger-meta";
+          alcoholLine.textContent = `Alcohol confirmed: ${formatPriceRange(alcohol.low, alcohol.high)}`;
+          details.appendChild(alcoholLine);
+        }
 
         const coordinates = document.createElement("p");
         coordinates.className = "ledger-coords";
@@ -322,13 +367,179 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "revise-button";
-        button.setAttribute("aria-label", `Revise description for ${pin.name}`);
+        button.setAttribute("aria-label", `Revise entry for ${pin.name}`);
         button.textContent = "Revise";
         button.addEventListener("click", () => openReviseDialog(pin));
 
         card.append(details, coordinates, button);
         els.ledgerList.appendChild(card);
       });
+  }
+
+  function renderAlcoholScale() {
+    els.alcoholScaleList.innerHTML = "";
+
+    const confirmedPins = state.pins
+      .map((pin) => ({ pin, alcohol: getAlcoholInfo(pin) }))
+      .filter((entry) => Boolean(entry.alcohol))
+      .sort((a, b) => {
+        const priceDifference = getAveragePrice(a.alcohol) - getAveragePrice(b.alcohol);
+        return priceDifference || a.pin.name.localeCompare(b.pin.name);
+      });
+
+    if (!confirmedPins.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-ledger";
+      empty.textContent = "No confirmed alcohol prices yet.";
+      els.alcoholScaleList.appendChild(empty);
+      return;
+    }
+
+    const maxPrice = Math.max(20, ...confirmedPins.map((entry) => entry.alcohol.high));
+
+    confirmedPins.forEach(({ pin, alcohol }) => {
+      const card = document.createElement("article");
+      card.className = "alcohol-card";
+
+      const details = document.createElement("div");
+      const title = document.createElement("h3");
+      title.textContent = pin.name;
+      const price = document.createElement("p");
+      price.className = "alcohol-price";
+      price.textContent = formatPriceRange(alcohol.low, alcohol.high);
+      const description = document.createElement("p");
+      description.textContent = pin.description;
+      details.append(title, price, description);
+
+      const scale = document.createElement("div");
+      scale.className = "price-track";
+      scale.setAttribute("aria-label", `${pin.name} alcohol price range ${formatPriceRange(alcohol.low, alcohol.high)}`);
+
+      const range = document.createElement("span");
+      range.className = "price-range-fill";
+      range.style.left = `${getScalePercent(alcohol.low, maxPrice)}%`;
+      range.style.width = `${Math.max(2, getScalePercent(alcohol.high, maxPrice) - getScalePercent(alcohol.low, maxPrice))}%`;
+
+      const marker = document.createElement("span");
+      marker.className = "price-marker";
+      marker.style.left = `${getScalePercent(getAveragePrice(alcohol), maxPrice)}%`;
+
+      scale.append(range, marker);
+      card.append(details, scale);
+      els.alcoholScaleList.appendChild(card);
+    });
+  }
+
+  function setAlcoholFields(scope, confirmed, low, high) {
+    const controls = getAlcoholControls(scope);
+    controls.confirmed.checked = confirmed;
+    controls.low.value = Number.isFinite(low) ? String(low) : "";
+    controls.high.value = Number.isFinite(high) ? String(high) : "";
+    syncAlcoholInputs(scope, false);
+  }
+
+  function syncAlcoholInputs(scope, clearValues) {
+    const controls = getAlcoholControls(scope);
+    const enabled = controls.confirmed.checked;
+    [controls.low, controls.high].forEach((input) => {
+      input.disabled = !enabled;
+      input.required = enabled;
+      input.setCustomValidity("");
+      if (!enabled && clearValues) {
+        input.value = "";
+      }
+    });
+  }
+
+  function readAlcoholFields(scope) {
+    const controls = getAlcoholControls(scope);
+    if (!controls.confirmed.checked) {
+      return {
+        valid: true,
+        confirmed: false,
+        low: null,
+        high: null,
+      };
+    }
+
+    const low = parsePrice(controls.low.value);
+    const high = parsePrice(controls.high.value);
+
+    if (low === null || high === null) {
+      controls.high.setCustomValidity("Enter a low and high alcohol price.");
+      controls.high.reportValidity();
+      controls.high.setCustomValidity("");
+      return { valid: false };
+    }
+
+    if (high < low) {
+      controls.high.setCustomValidity("High price must be at least the low price.");
+      controls.high.reportValidity();
+      controls.high.setCustomValidity("");
+      return { valid: false };
+    }
+
+    return {
+      valid: true,
+      confirmed: true,
+      low,
+      high,
+    };
+  }
+
+  function getAlcoholControls(scope) {
+    if (scope === "revise") {
+      return {
+        confirmed: els.reviseAlcoholConfirmed,
+        low: els.reviseAlcoholLow,
+        high: els.reviseAlcoholHigh,
+      };
+    }
+
+    return {
+      confirmed: els.alcoholConfirmed,
+      low: els.alcoholLow,
+      high: els.alcoholHigh,
+    };
+  }
+
+  function getAlcoholInfo(pin) {
+    const low = parsePrice(pin.alcoholLow);
+    const high = parsePrice(pin.alcoholHigh);
+    if (!pin.alcoholConfirmed || low === null || high === null || high < low) {
+      return null;
+    }
+
+    return { low, high };
+  }
+
+  function parsePrice(value) {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+
+    const price = Number(value);
+    if (!Number.isFinite(price) || price < 0) {
+      return null;
+    }
+
+    return Math.round(price * 100) / 100;
+  }
+
+  function getAveragePrice(alcohol) {
+    return (alcohol.low + alcohol.high) / 2;
+  }
+
+  function getScalePercent(price, maxPrice) {
+    return clamp((price / maxPrice) * 100, 0, 100);
+  }
+
+  function formatPriceRange(low, high) {
+    return `$${formatPrice(low)} - $${formatPrice(high)}`;
+  }
+
+  function formatPrice(price) {
+    return Number(price).toFixed(Number.isInteger(price) ? 0 : 2);
   }
 
   function initMap() {

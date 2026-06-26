@@ -31,6 +31,7 @@
         <nav class="view-tabs" aria-label="Primary">
           <button id="mapTab" class="tab-button active" type="button" data-view="map">Map</button>
           <button id="ledgerTab" class="tab-button" type="button" data-view="ledger">Ledger</button>
+          <button id="alcoholTab" class="tab-button" type="button" data-view="alcohol">Alcohol</button>
         </nav>
         <button id="logoutButton" class="ghost-button" type="button">Logout</button>
       </header>
@@ -66,6 +67,23 @@
         </div>
         <div id="ledgerList" class="ledger-list" aria-live="polite"></div>
       </section>
+
+      <section id="alcoholView" class="view alcohol-view hidden" aria-labelledby="alcoholScaleTitle">
+        <div class="ledger-heading">
+          <div>
+            <p class="kicker">Confirmed Offers</p>
+            <h2 id="alcoholScaleTitle">Alcohol Scale</h2>
+          </div>
+          <button id="alcoholDropPinButton" class="primary-button" type="button">Drop Pin</button>
+        </div>
+        <div class="alcohol-scale-wrap">
+          <div class="scale-axis" aria-hidden="true">
+            <span>Less expensive</span>
+            <span>More expensive</span>
+          </div>
+          <div id="alcoholScaleList" class="alcohol-scale-list" aria-live="polite"></div>
+        </div>
+      </section>
     </main>
 
     <dialog id="pinDialog" class="pin-dialog">
@@ -78,6 +96,23 @@
         <input id="locationName" name="locationName" type="text" maxlength="80" required>
         <label for="locationDescription">Description</label>
         <textarea id="locationDescription" name="locationDescription" rows="4" maxlength="260" required></textarea>
+        <fieldset class="alcohol-fieldset">
+          <legend>Alcohol Pricing</legend>
+          <label class="check-row" for="alcoholConfirmed">
+            <input id="alcoholConfirmed" name="alcoholConfirmed" type="checkbox">
+            <span>Alcohol for sale confirmed</span>
+          </label>
+          <div class="price-range-grid">
+            <label for="alcoholLow">
+              <span>Low price</span>
+              <input id="alcoholLow" name="alcoholLow" type="number" min="0" step="0.50" inputmode="decimal" placeholder="$">
+            </label>
+            <label for="alcoholHigh">
+              <span>High price</span>
+              <input id="alcoholHigh" name="alcoholHigh" type="number" min="0" step="0.50" inputmode="decimal" placeholder="$">
+            </label>
+          </div>
+        </fieldset>
         <p id="pinCoordinates" class="coordinate-preview"></p>
         <menu class="dialog-actions">
           <button id="cancelPinButton" class="secondary-button" type="button">Cancel</button>
@@ -95,6 +130,23 @@
         <p id="reviseLocationName" class="revision-target"></p>
         <label for="reviseDescription">Description</label>
         <textarea id="reviseDescription" name="reviseDescription" rows="5" maxlength="260" required></textarea>
+        <fieldset class="alcohol-fieldset">
+          <legend>Alcohol Pricing</legend>
+          <label class="check-row" for="reviseAlcoholConfirmed">
+            <input id="reviseAlcoholConfirmed" name="reviseAlcoholConfirmed" type="checkbox">
+            <span>Alcohol for sale confirmed</span>
+          </label>
+          <div class="price-range-grid">
+            <label for="reviseAlcoholLow">
+              <span>Low price</span>
+              <input id="reviseAlcoholLow" name="reviseAlcoholLow" type="number" min="0" step="0.50" inputmode="decimal" placeholder="$">
+            </label>
+            <label for="reviseAlcoholHigh">
+              <span>High price</span>
+              <input id="reviseAlcoholHigh" name="reviseAlcoholHigh" type="number" min="0" step="0.50" inputmode="decimal" placeholder="$">
+            </label>
+          </div>
+        </fieldset>
         <p id="reviseCoordinates" class="coordinate-preview"></p>
         <menu class="dialog-actions">
           <button id="cancelReviseButton" class="secondary-button" type="button">Cancel</button>
